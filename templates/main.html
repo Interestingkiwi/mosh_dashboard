@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Mothership: Main Display</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+</head>
+<body>
+
+<div class="container">
+    <div id="map-container" class="hud-panel">
+        <canvas id="galaxy-canvas"></canvas>
+
+        <div id="planet-info">
+            <h2>SYSTEM NAME</h2>
+            <p>System description goes here...</p>
+        </div>
+    </div>
+
+    <div class="hud-panel" style="flex: 1; display: flex; flex-direction: column;">
+        <h1>SSV NORMANDY</h1>
+        <hr>
+
+        <h3>Current Location</h3>
+        <h2 id="sys-name" style="color: #ff9900;">{{ state.system_name }}</h2>
+
+        <div style="margin-top: auto;">
+            <h3>Shield Integrity</h3>
+            <div style="width: 100%; background: #333; height: 20px;">
+                <div id="shield-bar" style="width: {{ state.shield_integrity }}%; background: #00f0ff; height: 100%;"></div>
+            </div>
+            <p><span id="shield-val">{{ state.shield_integrity }}</span>%</p>
+        </div>
+    </div>
+</div>
+
+<script>
+    var socket = io();
+
+    socket.on('update_state', function(state) {
+        // Update Text
+        document.getElementById('sys-name').innerText = state.system_name;
+        document.getElementById('shield-val').innerText = state.shield_integrity;
+
+        // Update Shield Bar Width
+        document.getElementById('shield-bar').style.width = state.shield_integrity + "%";
+
+        // Optional: If shield is low, make it red
+        if(state.shield_integrity < 30) {
+            document.getElementById('shield-bar').style.backgroundColor = "red";
+        } else {
+            document.getElementById('shield-bar').style.backgroundColor = "#00f0ff";
+        }
+        // NEW: Update the Map Visuals
+        // We assume your galaxy_map.js exposes 'updateMapState'
+        if (typeof updateMapState === "function") {
+            updateMapState(state.system_name, state.target_system);
+        }
+    });
+</script>
+
+<script src="{{ url_for('static', filename='js/galaxy_map.js') }}"></script>
+
+</body>
+</html>

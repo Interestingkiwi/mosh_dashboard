@@ -1,0 +1,54 @@
+body {
+    background-color: #050505;
+    color: #00f0ff;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0;
+    padding: 20px;
+    overflow: hidden; /* Prevent scrollbars on main display */
+}
+
+/* The layout container */
+.container {
+    display: flex;
+    height: 95vh;
+    gap: 20px;
+}
+
+/* Panels */
+.hud-panel {
+    background: rgba(0, 20, 30, 0.8);
+    border: 1px solid #00f0ff;
+    box-shadow: 0 0 15px rgba(0, 240, 255, 0.2);
+    padding: 20px;
+    border-radius: 8px;
+    position: relative;
+}
+
+/* Galaxy Map Specifics */
+#map-container {
+    flex: 3; /* Takes up 3/4 of screen */
+    position: relative;
+    background: radial-gradient(circle at center, #0a1520 0%, #000000 100%);
+    cursor: crosshair;
+}
+
+canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+
+/* Info Box Overlay (The "Brief Note") */
+#planet-info {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    width: 300px;
+    background: rgba(0, 0, 0, 0.9);
+    border-left: 4px solid #ff9900; /* Orange highlight */
+    padding: 15px;
+    display: none; /* Hidden by default */
+    pointer-events: none; /* Let clicks pass through */
+}
+
+#planet-info h2 { margin-top: 0; color: #ff9900; }

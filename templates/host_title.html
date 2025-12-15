@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block content %}
+<div style="text-align: center; margin-top: 50px;">
+    <h1 style="font-size: 3em; text-shadow: 0 0 20px #00f0ff;">MOTHERSHIP OS</h1>
+    <h3 style="color: #888;">SYSTEM INITIALIZATION</h3>
+
+    <div class="hud-panel" style="display: inline-block; padding: 30px; margin: 20px;">
+        <img src="data:image/png;base64,{{ qr_data }}" style="border: 5px solid #fff; border-radius: 5px;">
+        <p style="font-size: 1.2em; margin-top: 15px;">SCAN TO CONNECT</p>
+        <p style="font-family: monospace; color: #ff9900;">{{ url }}</p>
+    </div>
+
+    <br><br>
+
+    <button onclick="window.location.href='/main'" style="font-size: 1.5em; padding: 15px 40px;">
+        INITIALIZE DASHBOARD
+    </button>
+</div>
+{% endblock %}

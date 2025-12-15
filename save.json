@@ -1,0 +1,57 @@
+{
+    "status": {
+        "current_system": "Omega Nonrax Territory",
+        "current_location": "Ma'at",
+        "hull": 100,
+        "shields": 50,
+        "fuel": 75
+    },
+    "unlocks": {
+        "systems": [
+            "Las Pyroeaux Expanse",
+            "Omega Nonrax Territory"
+        ],
+        "locations": [
+            "Gilouria",
+            "Samsa VI",
+            "Ma'at",
+            "Station HS14"
+        ],
+        "upgrades": [
+            "Agar Cushioning",
+            "Comms Jammer"
+        ],
+        "crew": [
+            "Finnegan Breton",
+            "Zorina Jadin"
+        ]
+    },
+    "library": {
+        "systems": [
+            "Las Pyroeaux Expanse",
+            "Omega Nonrax Territory",
+            "Sol",
+            "Unknown Sector"
+        ],
+        "locations": [
+            "Gilouria",
+            "Samsa VI",
+            "Ma'at",
+            "Station HS14",
+            "Earth",
+            "Omega"
+        ],
+        "upgrades": [
+            "Agar Cushioning",
+            "Comms Jammer",
+            "Heavy Plating",
+            "FTL Drive V2"
+        ],
+        "crew": [
+            "Finnegan Breton",
+            "Zorina Jadin",
+            "Liara",
+            "Garrus"
+        ]
+    }
+}

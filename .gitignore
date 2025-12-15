@@ -1,0 +1,22 @@
+readme.txt
+build.bat
+
+
+# Python crud
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual Environment
+venv/
+env/
+
+# Distribution / Builds
+dist/
+build/
+*.spec
+*.exe
+
+# IDE settings
+.vscode/
+.idea/

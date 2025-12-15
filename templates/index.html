@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block content %}
+<div style="text-align: center; padding-top: 20px;">
+    <h1>IDENTIFICATION REQUIRED</h1>
+    <p>Select your station:</p>
+
+    <div style="display: flex; flex-direction: column; gap: 15px; max-width: 300px; margin: 0 auto;">
+        <a href="/station/pilot">
+            <button style="width: 100%; padding: 20px; font-size: 1.2em;">PILOT</button>
+        </a>
+        <a href="/station/engineer">
+            <button style="width: 100%; padding: 20px; font-size: 1.2em;">ENGINEER</button>
+        </a>
+        <a href="/station/gunner">
+            <button style="width: 100%; padding: 20px; font-size: 1.2em;">GUNNER</button>
+        </a>
+
+        <br>
+        <hr style="border-color: #333; width: 50%;">
+
+        <a href="/gm">
+            <button style="width: 100%; padding: 10px; background: #220000; color: #aa0000; border: 1px solid #550000; font-size: 0.9em;">
+                // SYSTEM OVERRIDE (GM)
+            </button>
+        </a>
+    </div>
+</div>
+{% endblock %}

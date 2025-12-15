@@ -1,0 +1,52 @@
+<h1>Station: {{ role }}</h1>
+
+<div class="hud-panel">
+    <h3>Current Location: <span style="color: #00ff00">{{ state.system_name }}</span></h3>
+
+    {% if role == 'Pilot' %}
+        <label>Select Destination:</label>
+        <select id="nav-computer" style="background: #000; color: #00f0ff; padding: 10px; border: 1px solid #00f0ff;">
+            {% for system in unlocks.systems %}
+                <option value="{{ system }}">{{ system }}</option>
+            {% endfor %}
+        </select>
+
+        <br><br>
+
+        <div style="display: flex; gap: 10px;">
+            <button onclick="plotCourse()">PLOT COURSE</button>
+            <button onclick="engage()" style="border-color: #ff9900; color: #ff9900;">ENGAGE FTL</button>
+        </div>
+    {% elif role == 'Engineer' %}
+        <p>Power Divert Controls</p>
+        <button onclick="setPower('shields', 100)">Max Shields</button>
+        <button onclick="setPower('weapons', 100)">Max Weapons</button>
+        <button onclick="setPower('engines', 100)">Max Engines</button>
+    {% else %}
+        <p>Systems Normal. Awaiting orders.</p>
+    {% endif %}
+</div>
+
+<script>
+    function plotCourse() {
+        const target = document.getElementById('nav-computer').value;
+        socket.emit('plot_course', {target_system: target});
+    }
+
+    function engage() {
+        socket.emit('engage_jump');
+    }
+    // Receive Updates
+    function updateInterface(state) {
+        document.getElementById('loc-display').innerText = state.system_name;
+    }
+
+    // Send Commands
+    function jumpSystem(target) {
+        socket.emit('jump_system', {target_system: target});
+    }
+
+    function setPower(system, amount) {
+        socket.emit('update_power', {system: system, value: amount});
+    }
+</script>
