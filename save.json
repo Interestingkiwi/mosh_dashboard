@@ -3,55 +3,135 @@
         "current_system": "Omega Nonrax Territory",
         "current_location": "Ma'at",
         "hull": 100,
-        "shields": 50,
-        "fuel": 75
+        "shields": 100,
+        "fuel": 100
     },
+    "players": [
+        {
+            "name": "Wruby",
+            "class": "Xenobiologist",
+            "stats": { "strength": 0, "Speed": 0, "Intellect": 0, "Combat": 0, "Sanity": 0, "Fear": 0, "Body": 0 },
+            "skills": { "cooking": 0, "piloting": 0, "engineering": 0, "gunner": 0, "medical": 0, "science": 0, "mental": 0 }
+        },
+        {
+            "name": "Jade",
+            "class": "Xenobiologist",
+            "stats": { "strength": 0, "Speed": 0, "Intellect": 0, "Combat": 0, "Sanity": 0, "Fear": 0, "Body": 0 },
+            "skills": { "cooking": 0, "piloting": 0, "engineering": 0, "gunner": 0, "medical": 0, "science": 0, "mental": 0 }
+        },
+        {
+            "name": "Cadmium",
+            "class": "Xenobiologist",
+            "stats": { "strength": 0, "Speed": 0, "Intellect": 0, "Combat": 0, "Sanity": 0, "Fear": 0, "Body": 0 },
+            "skills": { "cooking": 0, "piloting": 0, "engineering": 0, "gunner": 0, "medical": 0, "science": 0, "mental": 0 }
+        },
+        {
+            "name": "Dunan",
+            "class": "Xenobiologist",
+            "stats": { "strength": 0, "Speed": 0, "Intellect": 0, "Combat": 0, "Sanity": 0, "Fear": 0, "Body": 0 },
+            "skills": { "cooking": 0, "piloting": 0, "engineering": 0, "gunner": 0, "medical": 0, "science": 0, "mental": 0 }
+        },
+        {
+            "name": "John",
+            "class": "Xenobiologist",
+            "stats": { "strength": 0, "Speed": 0, "Intellect": 0, "Combat": 0, "Sanity": 0, "Fear": 0, "Body": 0 },
+            "skills": { "cooking": 0, "piloting": 0, "engineering": 0, "gunner": 0, "medical": 0, "science": 0, "mental": 0 }
+        }
+    ],
+    "recipes": [
+        {
+            "name": "Standard Rations",
+            "requirements": [ {"tier": 1, "qty": 4} ],
+            "effect": "Feeds the crew, plus creates 4x MRE's. (Warning: Serving this on the ship 3 days in a row crew gains +1 Stress, and -1 Ship Morale)"
+        },
+        {
+            "name": "Officers Meal",
+            "requirements": [ {"tier": 1, "qty": 2}, {"tier": 2, "qty": 1} ],
+            "effect": "Restores 15 HP. Boosts Morale."
+        },
+        {
+            "name": "Exotic Feast",
+            "requirements": [ {"tier": 2, "qty": 2}, {"tier": 3, "qty": 1} ],
+            "effect": "Full HP Restore. Grants 'Well Fed' bonus."
+        }
+    ],
+    "inventory": [
+        { "category": "Weapons", "item": "Vibechete", "qty": 1, "description": "High-frequency blade. Cuts through hull plating." },
+        { "category": "Weapons", "item": "Smart Rifle", "qty": 2, "description": "Auto-aim capabilities. Requires sync." },
+        { "category": "Armor", "item": "Vacc Suit", "qty": 4, "description": "Standard EVA protection. 12 hours oxygen." },
+        { "category": "Food", "item": "MRE (Chicken)", "qty": 50, "description": "Dehydrated rations. Taste: Acceptable." },
+        { "category": "Medicine", "item": "Stimpak", "qty": 12, "description": "Adrenaline and clotting agent mix." },
+        { "category": "Scrap Parts", "item": "Scrap Metal", "qty": 200, "description": "Salvaged from derelict hull." },
+        { "category": "Misc", "item": "Dice Set", "qty": 1, "description": "For high-stakes gambling in the mess hall." },
+        { "category": "Ingredients", "item": "Algea Paste", "qty": 20, "description": "Tier 1 - Basic Algea Sludge, contains all necessary nutrients" }
+    ],
     "unlocks": {
         "systems": [
-            "Las Pyroeaux Expanse",
-            "Omega Nonrax Territory"
+          "Omega Nonrax Territory"
         ],
         "locations": [
-            "Gilouria",
-            "Samsa VI",
-            "Ma'at",
-            "Station HS14"
+          "Ma'at",
+          "Zerth XSHZ",
+          "Jump-ONT"
         ],
         "upgrades": [
             "Agar Cushioning",
             "Comms Jammer"
         ],
         "crew": [
-            "Finnegan Breton",
-            "Zorina Jadin"
+            "Wruby",
+            "Cadmium Bright",
+            "Jade",
+            "Duncan",
+            "Dr John Smith",
+            "Dante Rhyne",
+            "Sana Eras",
+            "Louisa Baily",
+            "Jerry Soner"
         ]
     },
     "library": {
         "systems": [
             "Las Pyroeaux Expanse",
             "Omega Nonrax Territory",
-            "Sol",
-            "Unknown Sector"
+            "Unknown Sector",
+            "Picon Toloid Region",
+            "The Whimus Territory",
+            "The Depox Zone"
         ],
         "locations": [
             "Gilouria",
             "Samsa VI",
             "Ma'at",
             "Station HS14",
-            "Earth",
-            "Omega"
+            "Temp1",
+            "Temp2",
+            "Jump-LPE",
+            "Jump-ONT",
+            "Jump-PTR",
+            "Jump-TWT",
+            "Jump-TDZ",
+            "Unknown-LPE",
+            "Unknown-ONT",
+            "Unknown-PTR",
+            "Unknown-TWT",
+            "Unknown-TDZ",
+            "Tabernas"
         ],
         "upgrades": [
             "Agar Cushioning",
-            "Comms Jammer",
-            "Heavy Plating",
-            "FTL Drive V2"
+            "Comms Jammer"
         ],
         "crew": [
-            "Finnegan Breton",
-            "Zorina Jadin",
-            "Liara",
-            "Garrus"
+            "Wruby",
+            "Cadmium Bright",
+            "Jade",
+            "Duncan",
+            "Dr John Smith",
+            "Dante Rhyne",
+            "Sana Eras",
+            "Louisa Baily",
+            "Jerry Soner"
         ]
     }
 }

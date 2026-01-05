@@ -1,0 +1,172 @@
+<div id="manifest-modal" class="modal-overlay">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 style="color: #ff9900; margin: 0;">INVENTORY</h2>
+            <button class="close-btn" onclick="closeManifest()">&times;</button>
+        </div>
+
+        <div id="manifest-tabs" class="tab-container">
+            </div>
+
+        <div style="max-height: 50vh; overflow-y: auto;">
+            <table class="manifest-table">
+                <thead>
+                    <tr><th style="text-align: left;">ITEM</th><th>QTY</th></tr>
+                </thead>
+                <tbody id="manifest-body">
+                    </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div id="mess-modal" class="modal-overlay">
+    <div class="modal-content" style="border-color: #00ff00; box-shadow: 0 0 20px rgba(0,255,0,0.2);">
+        <div class="modal-header" style="border-bottom-color: #00ff00;">
+            <h2 style="color: #00ff00; margin: 0;">SYNTHESIZER</h2>
+            <button class="close-btn" onclick="closeMess()" style="color:#00ff00;">&times;</button>
+        </div>
+
+        <h3 style="color: #888; font-size: 0.9em; margin-top: 0;">AVAILABLE INGREDIENTS</h3>
+        <ul id="kitchen-stock" style="list-style: none; padding: 0; color: #aaa; font-size: 0.8em; margin-bottom: 15px; border-bottom: 1px solid #333; padding-bottom: 10px;"></ul>
+
+        <h3 style="color: #888; font-size: 0.9em;">RECIPES</h3>
+        <div id="recipe-list" style="max-height: 50vh; overflow-y: auto;">
+            </div>
+    </div>
+</div>
+
+<script>
+    // --- SHARED CONSTANTS ---
+    // Note: window.inventory and window.recipes must be set by the PARENT file before including this!
+    const CATEGORIES = ["Weapons", "Armor", "Equipment", "Food", "Medicine", "Ingredients", "Scrap Parts", "Misc"];
+    let currentCategory = "Weapons";
+
+    // --- MANIFEST FUNCTIONS ---
+    function openManifest() {
+        renderTabs();
+        renderManifest();
+        document.getElementById('manifest-modal').style.display = 'flex';
+    }
+
+    function closeManifest() {
+        document.getElementById('manifest-modal').style.display = 'none';
+    }
+
+    function renderTabs() {
+        const bar = document.getElementById('manifest-tabs');
+        bar.innerHTML = '';
+        CATEGORIES.forEach(cat => {
+            const btn = document.createElement('button');
+            btn.className = `tab-btn ${cat === currentCategory ? 'active' : ''}`;
+            btn.innerText = cat;
+            btn.onclick = () => { currentCategory = cat; renderTabs(); renderManifest(); };
+            bar.appendChild(btn);
+        });
+    }
+
+    function renderManifest() {
+        const body = document.getElementById('manifest-body');
+        body.innerHTML = '';
+
+        // Safety check
+        if (!window.inventory) return;
+
+        const items = window.inventory.filter(i => i.category === currentCategory);
+
+        if (items.length === 0) {
+            body.innerHTML = '<tr><td colspan="2" style="text-align:center; color:#555; padding:20px;">NO ITEMS FOUND</td></tr>';
+            return;
+        }
+
+        items.forEach(item => {
+            body.innerHTML += `
+                <tr>
+                    <td>
+                        <span style="color: #00f0ff; font-weight: bold;">${item.item}</span>
+                        <span class="desc-col">${item.description}</span>
+                    </td>
+                    <td style="vertical-align: top;">x${item.qty}</td>
+                </tr>`;
+        });
+    }
+
+    // --- MESS FUNCTIONS ---
+    function openMess() {
+        renderStock();
+        renderRecipes();
+        document.getElementById('mess-modal').style.display = 'flex';
+    }
+
+    function closeMess() {
+        document.getElementById('mess-modal').style.display = 'none';
+    }
+
+    function getTierTotal(tier) {
+        if (!window.inventory) return 0;
+        return window.inventory
+            .filter(i => i.category === "Ingredients" && i.description.includes(`Tier ${tier}`))
+            .reduce((sum, item) => sum + item.qty, 0);
+    }
+
+    function renderStock() {
+        const list = document.getElementById('kitchen-stock');
+        list.innerHTML = '';
+        if (!window.inventory) return;
+
+        const ingredients = window.inventory.filter(i => i.category === "Ingredients");
+        if (ingredients.length === 0) {
+            list.innerHTML = "<li>No ingredients available.</li>";
+        }
+        ingredients.forEach(i => {
+            list.innerHTML += `<li>${i.item} (x${i.qty})</li>`;
+        });
+    }
+
+    function renderRecipes() {
+        const list = document.getElementById('recipe-list');
+        list.innerHTML = '';
+        if (!window.recipes) return;
+
+        window.recipes.forEach(r => {
+            let canCook = true;
+            let reqHtml = '';
+
+            r.requirements.forEach(req => {
+                const avail = getTierTotal(req.tier);
+                if (avail < req.qty) canCook = false;
+                reqHtml += `<span style="color:${avail>=req.qty ? '#00ff00':'#ff3333'}; margin-right:10px; font-size:0.8em;">T${req.tier}: ${avail}/${req.qty}</span>`;
+            });
+
+            const card = document.createElement('div');
+            card.style.border = "1px solid #333";
+            card.style.padding = "10px";
+            card.style.marginBottom = "10px";
+            card.style.background = canCook ? "rgba(0,50,0,0.3)" : "transparent";
+
+            card.innerHTML = `
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <strong style="color:#00ff00;">${r.name}</strong>
+                    <button onclick="cookItem('${r.name}')" ${canCook ? '' : 'disabled'}
+                        style="background:${canCook?'#00ff00':'#333'}; color:${canCook?'#000':'#888'}; border:none; padding:5px 10px; cursor:pointer;">
+                        COOK
+                    </button>
+                </div>
+                <div style="margin:5px 0;">${reqHtml}</div>
+                <small style="color:#888;">${r.effect}</small>
+            `;
+            list.appendChild(card);
+        });
+    }
+
+    function cookItem(name) {
+        alert("Cooking " + name + "... (Server logic pending)");
+        // Future: socket.emit('cook_item', {recipe: name, player: '{{ player.name if player else "GM" }}'});
+    }
+
+    // Close on Outside Click
+    window.onclick = function(event) {
+        if (event.target == document.getElementById('manifest-modal')) closeManifest();
+        if (event.target == document.getElementById('mess-modal')) closeMess();
+    }
+</script>

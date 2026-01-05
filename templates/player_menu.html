@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div style="border-bottom: 1px solid #00f0ff; padding-bottom: 10px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: end;">
+    <div>
+        <h1 style="margin: 0; font-size: 1.5em;">{{ player.name }}</h1>
+        <small style="color: #888;">{{ player.class }} | Stress: {{ player.stats.stress }}</small>
+    </div>
+    <div style="text-align: right;">
+        <a href="/" style="color: #ff3333; text-decoration: none; font-size: 0.8em;">LOGOUT</a>
+    </div>
+</div>
+
+<div class="console-grid">
+    <a href="/station/pilot"><button class="console-btn">Pilot</button></a>
+    <a href="/station/engineer"><button class="console-btn">Engineering</button></a>
+    <a href="/station/gunner"><button class="console-btn">Gunner</button></a>
+
+    <button class="console-btn">Map</button>
+    <button class="console-btn" onclick="openManifest()">Manifest</button>
+    <button class="console-btn">Requisitions</button>
+
+    <button class="console-btn">Medical</button>
+    <button class="console-btn">Lab</button>
+    <button class="console-btn">Mental</button>
+
+    <button class="console-btn" onclick="openMess()">Mess</button>
+    <button class="console-btn">Crew</button>
+    <button class="console-btn">Logs</button>
+</div>
+
+<script>
+    // The included modals.html expects these to exist!
+    window.inventory = {{ inventory | tojson }};
+    window.recipes = {{ recipes | tojson }};
+</script>
+
+{% include 'includes/modals.html' %}
+
+{% endblock %}

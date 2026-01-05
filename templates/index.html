@@ -1,19 +1,19 @@
 {% extends "base.html" %}
 {% block content %}
 <div style="text-align: center; padding-top: 20px;">
-    <h1>IDENTIFICATION REQUIRED</h1>
-    <p>Select your station:</p>
+    <h1>IDENTITY VERIFICATION</h1>
+    <p style="color: #888;">Select your personnel file:</p>
 
     <div style="display: flex; flex-direction: column; gap: 15px; max-width: 300px; margin: 0 auto;">
-        <a href="/station/pilot">
-            <button style="width: 100%; padding: 20px; font-size: 1.2em;">PILOT</button>
+
+        {% for p in players %}
+        <a href="/dashboard/{{ p.name }}">
+            <button style="width: 100%; padding: 20px; font-size: 1.2em; text-align: left; display: flex; justify-content: space-between;">
+                <span>{{ p.name }}</span>
+                <span style="font-size: 0.8em; color: #00f0ff;">{{ p.class }}</span>
+            </button>
         </a>
-        <a href="/station/engineer">
-            <button style="width: 100%; padding: 20px; font-size: 1.2em;">ENGINEER</button>
-        </a>
-        <a href="/station/gunner">
-            <button style="width: 100%; padding: 20px; font-size: 1.2em;">GUNNER</button>
-        </a>
+        {% endfor %}
 
         <br>
         <hr style="border-color: #333; width: 50%;">

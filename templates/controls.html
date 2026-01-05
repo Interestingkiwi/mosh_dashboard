@@ -1,7 +1,9 @@
+{% extends "base.html" %}
+{% block content %}
 <h1>Station: {{ role }}</h1>
 
 <div class="hud-panel">
-    <h3>Current Location: <span style="color: #00ff00">{{ state.system_name }}</span></h3>
+    <h3>Current Location: <span id="loc-display" style="color: #00ff00">{{ state.current_system }}</span></h3>
 
     {% if role == 'Pilot' %}
         <label>Select Destination:</label>
@@ -17,11 +19,13 @@
             <button onclick="plotCourse()">PLOT COURSE</button>
             <button onclick="engage()" style="border-color: #ff9900; color: #ff9900;">ENGAGE FTL</button>
         </div>
+
     {% elif role == 'Engineer' %}
         <p>Power Divert Controls</p>
         <button onclick="setPower('shields', 100)">Max Shields</button>
         <button onclick="setPower('weapons', 100)">Max Weapons</button>
         <button onclick="setPower('engines', 100)">Max Engines</button>
+
     {% else %}
         <p>Systems Normal. Awaiting orders.</p>
     {% endif %}
@@ -36,9 +40,11 @@
     function engage() {
         socket.emit('engage_jump');
     }
+
     // Receive Updates
     function updateInterface(state) {
-        document.getElementById('loc-display').innerText = state.system_name;
+        // UPDATED: Uses 'current_system'
+        document.getElementById('loc-display').innerText = state.current_system;
     }
 
     // Send Commands
@@ -50,3 +56,4 @@
         socket.emit('update_power', {system: system, value: amount});
     }
 </script>
+{% endblock %}

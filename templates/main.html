@@ -18,49 +18,113 @@
         </div>
     </div>
 
-    <div class="hud-panel" style="flex: 1; display: flex; flex-direction: column;">
-        <h1>SSV NORMANDY</h1>
+    <div class="hud-panel" style="flex: 1; display: flex; flex-direction: column; gap: 20px;">
+        <h1>JIC-IV Von Braun</h1>
         <hr>
 
-        <h3>Current Location</h3>
-        <h2 id="sys-name" style="color: #ff9900;">{{ state.system_name }}</h2>
-
-        <div style="margin-top: auto;">
-            <h3>Shield Integrity</h3>
-            <div style="width: 100%; background: #333; height: 20px;">
-                <div id="shield-bar" style="width: {{ state.shield_integrity }}%; background: #00f0ff; height: 100%;"></div>
-            </div>
-            <p><span id="shield-val">{{ state.shield_integrity }}</span>%</p>
+        <div>
+            <h3>Current System</h3>
+            <h2 id="sys-name" style="color: #ff9900; font-size: 1.5em; margin: 0;">{{ state.current_system }}</h2>
+            <h4 id="loc-name" style="color: #00f0ff; margin-top: 5px;">Orbiting: {{ state.current_location }}</h4>
         </div>
+
+        <div>
+            <div style="display:flex; justify-content:space-between;"><span>Hull Integrity</span> <span id="hull-val">{{ state.hull }}%</span></div>
+            <div style="width: 100%; background: #333; height: 10px; margin-top:5px;">
+                <div id="hull-bar" style="width: {{ state.hull }}%; background: #ff3333; height: 100%;"></div>
+            </div>
+        </div>
+
+        <div>
+            <div style="display:flex; justify-content:space-between;"><span>Shields</span> <span id="shield-val">{{ state.shields }}%</span></div>
+            <div style="width: 100%; background: #333; height: 10px; margin-top:5px;">
+                <div id="shield-bar" style="width: {{ state.shields }}%; background: #00f0ff; height: 100%;"></div>
+            </div>
+        </div>
+
+        <div>
+            <div style="display:flex; justify-content:space-between;"><span>Fuel Reserves</span> <span id="fuel-val">{{ state.fuel }}%</span></div>
+            <div style="width: 100%; background: #333; height: 10px; margin-top:5px;">
+                <div id="fuel-bar" style="width: {{ state.fuel }}%; background: #ffcc00; height: 100%;"></div>
+            </div>
+        </div>
+
+        <hr style="border-color: #333; margin: 10px 0;">
+
+        <div>
+            <h3>Console</h3>
+            <div class="console-grid">
+                <button class="console-btn">Pilot</button>
+                <button class="console-btn">Engineering</button>
+                <button class="console-btn">Gunner</button>
+
+                <button class="console-btn">Map</button>
+                <button class="console-btn" onclick="openManifest()">Manifest</button>
+                <button class="console-btn">Requisitions</button>
+
+                <button class="console-btn">Medical</button>
+                <button class="console-btn">Lab</button>
+                <button class="console-btn">Mental</button>
+
+                <button class="console-btn" onclick="openMess()">Mess</button>
+                <button class="console-btn">Crew</button>
+                <button class="console-btn">Logs</button>
+            </div>
+        </div>
+
     </div>
 </div>
 
 <script>
-    var socket = io();
+    // 1. Setup global data needed by the shared modals
+    // The included modals.html file expects these variables to exist!
+    window.unlockedSystems = {{ unlocks.systems | tojson }};
+    window.unlockedLocations = {{ unlocks.locations | tojson }};
+    window.inventory = {{ inventory | tojson }};
+    window.recipes = {{ recipes | tojson }};
 
+    // 2. Socket Listeners
+    var socket = io();
     socket.on('update_state', function(state) {
         // Update Text
-        document.getElementById('sys-name').innerText = state.system_name;
-        document.getElementById('shield-val').innerText = state.shield_integrity;
+        document.getElementById('sys-name').innerText = state.current_system;
+        document.getElementById('loc-name').innerText = "Orbiting: " + state.current_location;
+        document.getElementById('hull-val').innerText = state.hull + "%";
+        document.getElementById('shield-val').innerText = state.shields + "%";
+        document.getElementById('fuel-val').innerText = state.fuel + "%";
 
-        // Update Shield Bar Width
-        document.getElementById('shield-bar').style.width = state.shield_integrity + "%";
+        // Update Bars
+        document.getElementById('hull-bar').style.width = state.hull + "%";
+        document.getElementById('shield-bar').style.width = state.shields + "%";
+        document.getElementById('fuel-bar').style.width = state.fuel + "%";
 
-        // Optional: If shield is low, make it red
-        if(state.shield_integrity < 30) {
+        // Dynamic Colors
+        if(state.shields < 30) {
             document.getElementById('shield-bar').style.backgroundColor = "red";
         } else {
             document.getElementById('shield-bar').style.backgroundColor = "#00f0ff";
         }
-        // NEW: Update the Map Visuals
-        // We assume your galaxy_map.js exposes 'updateMapState'
+
+        // Update Map
         if (typeof updateMapState === "function") {
-            updateMapState(state.system_name, state.target_system);
+            updateMapState(state.current_system, state.target_system);
+        }
+
+        // Update Inventory/Recipes if changed
+        if (state.inventory) {
+            window.inventory = state.inventory;
+            // If the manifest modal is currently open, refresh it to show new items
+            if (document.getElementById('manifest-modal') && document.getElementById('manifest-modal').style.display === 'flex') {
+                // These functions are defined in 'includes/modals.html'
+                if (typeof renderManifest === 'function') renderManifest();
+            }
         }
     });
 </script>
 
-<script src="{{ url_for('static', filename='js/galaxy_map.js') }}"></script>
+{% include 'includes/modals.html' %}
+
+<script src="{{ url_for('static', filename='js/galaxy_map.js') }}?v=4"></script>
 
 </body>
 </html>

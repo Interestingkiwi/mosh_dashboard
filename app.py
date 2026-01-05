@@ -33,7 +33,8 @@ def load_game():
         return {
             "status": {"current_system": "Sol", "current_location": "Earth", "hull": 100, "shields": 100, "fuel": 100},
             "unlocks": {"systems": ["Sol"], "locations": ["Earth"], "upgrades": [], "crew": []},
-            "library": {"systems": ["Sol"], "locations": ["Earth"], "upgrades": [], "crew": []}
+            "library": {"systems": ["Sol"], "locations": ["Earth"], "upgrades": [], "crew": []},
+            "inventory": []
         }
     with open(SAVE_FILE, 'r') as f:
         return json.load(f)
@@ -62,7 +63,18 @@ def get_local_ip():
 
 @app.route('/')
 def player_lobby():
-    return render_template('index.html')
+    return render_template('index.html', players=game_state.get('players', []))
+
+@app.route('/dashboard/<player_name>')
+def player_dashboard(player_name):
+    # Find the specific player object
+    player = next((p for p in game_state.get('players', []) if p['name'] == player_name), None)
+
+    # Pass all data needed for Modals (Inventory, Recipes) + Player Stats
+    return render_template('player_menu.html',
+                           player=player,
+                           inventory=game_state.get('inventory', []),
+                           recipes=game_state.get('recipes', []))
 
 @app.route('/host')
 def host_screen():
@@ -77,7 +89,12 @@ def host_screen():
 
 @app.route('/main')
 def main_dashboard():
-    return render_template('main.html', state=game_state['status'])
+    # Now passing 'recipes' as well
+    return render_template('main.html',
+                           state=game_state['status'],
+                           unlocks=game_state['unlocks'],
+                           inventory=game_state.get('inventory', []),
+                           recipes=game_state.get('recipes', []))
 
 @app.route('/station/<role>')
 def station_controls(role):
