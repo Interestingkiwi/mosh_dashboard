@@ -4,7 +4,7 @@
 <div style="border-bottom: 1px solid #00f0ff; padding-bottom: 10px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: end;">
     <div>
         <h1 style="margin: 0; font-size: 1.5em;">{{ player.name }}</h1>
-        <small style="color: #888;">{{ player.class }} | Stress: {{ player.stats.stress }}</small>
+        <small style="color: #888;">{{ player.class }}</small>
     </div>
     <div style="text-align: right;">
         <a href="/" style="color: #ff3333; text-decoration: none; font-size: 0.8em;">LOGOUT</a>
@@ -30,9 +30,25 @@
 </div>
 
 <script>
-    // The included modals.html expects these to exist!
+    // DATA SETUP
     window.inventory = {{ inventory | tojson }};
     window.recipes = {{ recipes | tojson }};
+
+    // NEW: Inject Player Skill
+    window.playerCookingSkill = {{ player.skills.cooking }};
+    window.currentPlayer = "{{ player.name }}";
+    var socket = io();
+    socket.on('update_state', function(state) {
+        // Disable Mess Button if offline
+        const messBtn = document.getElementById('btn-mess');
+        if (state.mess_offline) {
+            messBtn.classList.add('disabled');
+            messBtn.disabled = true;
+        } else {
+            messBtn.classList.remove('disabled');
+            messBtn.disabled = false;
+        }
+    });
 </script>
 
 {% include 'includes/modals.html' %}

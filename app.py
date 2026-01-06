@@ -28,26 +28,28 @@ socketio = SocketIO(app, async_mode='threading')
 SAVE_FILE = 'save.json'
 
 def load_game():
-    """Loads state from JSON. Creates default if missing."""
     if not os.path.exists(SAVE_FILE):
         return {
             "status": {"current_system": "Sol", "current_location": "Earth", "hull": 100, "shields": 100, "fuel": 100},
+            "players": [],
             "unlocks": {"systems": ["Sol"], "locations": ["Earth"], "upgrades": [], "crew": []},
             "library": {"systems": ["Sol"], "locations": ["Earth"], "upgrades": [], "crew": []},
-            "inventory": []
+            "inventory": [],
+            "recipes": []
         }
     with open(SAVE_FILE, 'r') as f:
-        return json.load(f)
+        data = json.load(f)
+        # Ensure new fields exist if loading old save
+        if 'mess_offline' not in data['status']: data['status']['mess_offline'] = False
+        if 'action_log' not in data: data['action_log'] = []
+        return data
 
 def save_game(state):
-    """Writes state to JSON."""
     with open(SAVE_FILE, 'w') as f:
         json.dump(state, f, indent=4)
 
-# Load state on startup
 game_state = load_game()
 
-# --- HELPER: LOCAL IP ---
 def get_local_ip():
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     try:
@@ -67,10 +69,7 @@ def player_lobby():
 
 @app.route('/dashboard/<player_name>')
 def player_dashboard(player_name):
-    # Find the specific player object
     player = next((p for p in game_state.get('players', []) if p['name'] == player_name), None)
-
-    # Pass all data needed for Modals (Inventory, Recipes) + Player Stats
     return render_template('player_menu.html',
                            player=player,
                            inventory=game_state.get('inventory', []),
@@ -89,7 +88,6 @@ def host_screen():
 
 @app.route('/main')
 def main_dashboard():
-    # Now passing 'recipes' as well
     return render_template('main.html',
                            state=game_state['status'],
                            unlocks=game_state['unlocks'],
@@ -98,55 +96,189 @@ def main_dashboard():
 
 @app.route('/station/<role>')
 def station_controls(role):
-    # Pass the full state so Pilot sees available systems
     return render_template('controls.html', role=role.capitalize(), state=game_state['status'], unlocks=game_state['unlocks'])
 
-# --- NEW: GM DASHBOARD ---
 @app.route('/gm', methods=['GET', 'POST'])
 def gm_dashboard():
     global game_state
     if request.method == 'POST':
-        # Update Status (Dropdowns/Inputs)
         game_state['status']['current_system'] = request.form.get('current_system')
         game_state['status']['current_location'] = request.form.get('current_location')
         game_state['status']['hull'] = int(request.form.get('hull'))
         game_state['status']['shields'] = int(request.form.get('shields'))
         game_state['status']['fuel'] = int(request.form.get('fuel'))
 
-        # Update Unlocks (Checkboxes)
-        # We clear the lists and rebuild them based on what was checked
         game_state['unlocks']['systems'] = request.form.getlist('unlock_systems')
         game_state['unlocks']['locations'] = request.form.getlist('unlock_locations')
         game_state['unlocks']['upgrades'] = request.form.getlist('unlock_upgrades')
         game_state['unlocks']['crew'] = request.form.getlist('unlock_crew')
 
         save_game(game_state)
-
-        # Push update to all clients immediately
         socketio.emit('update_state', game_state['status'])
         return redirect(url_for('gm_dashboard'))
 
     return render_template('gamemaster.html', game=game_state)
 
+
+@app.route('/gm/reset_mess', methods=['POST'])
+def gm_reset_mess():
+    """GM Only: Re-enables the Mess Hall"""
+    game_state['status']['mess_offline'] = False
+
+    # Log the maintenance
+    log_entry = {
+        "text": "SYSTEM ALERT: Mess Hall maintenance complete. Systems online.",
+        "type": "system"
+    }
+    game_state['action_log'].append(log_entry)
+
+    save_game(game_state)
+
+    # Broadcast to re-enable buttons
+    socketio.emit('update_state', game_state['status'])
+    socketio.emit('new_log', log_entry)
+
+    return redirect(url_for('gm_dashboard'))
+
+
 # --- SOCKET EVENTS ---
+
 @socketio.on('connect')
 def handle_connect():
     emit('update_state', game_state['status'])
 
+@socketio.on('complete_cooking')
+def handle_cooking(data):
+    """
+    Consumes ingredients based on recipe requirements.
+    Expected data: {'recipe': 'Recipe Name', 'outcome': 'Success'}
+    """
+    recipe_name = data.get('recipe')
+    outcome = data.get('outcome')
+
+    # If they cancelled, do nothing
+    if outcome == 'Cancel':
+        return
+
+    # Find the recipe
+    recipe = next((r for r in game_state.get('recipes', []) if r['name'] == recipe_name), None)
+    if not recipe:
+        return
+
+    inventory = game_state.get('inventory', [])
+
+    # Process each requirement (e.g., Tier 1, Qty 2)
+    for req in recipe['requirements']:
+        tier = req['tier']
+        qty_needed = req['qty']
+
+        # Find matching items in inventory (Category=Ingredients AND Description contains "Tier X")
+        # We sort by quantity ascending to use up small stacks first? Or just any.
+        candidates = [i for i in inventory if i.get('category') == 'Ingredients' and f"Tier {tier}" in i.get('description', '')]
+
+        for item in candidates:
+            if qty_needed <= 0: break
+
+            take = min(item['qty'], qty_needed)
+            item['qty'] -= take
+            qty_needed -= take
+
+    # Remove items with 0 quantity
+    game_state['inventory'] = [i for i in inventory if i['qty'] > 0]
+
+    save_game(game_state)
+
+    # Broadcast full update (Status + Inventory) so everyone sees the stock drop
+    response = game_state['status'].copy()
+    response['inventory'] = game_state['inventory']
+    emit('update_state', response, broadcast=True)
+
 @socketio.on('plot_course')
 def handle_plot(data):
-    # Just visuals, doesn't change save file
     socketio.emit('update_state', {'target_system': data.get('target_system')}, broadcast=True)
 
 @socketio.on('engage_jump')
 def handle_jump():
-    # Only Pilot can trigger this via socket, or GM via dashboard
-    # For now, let's keep movement simple
     pass
 
-# --- LAUNCHER ---
+
+@socketio.on('complete_cooking')
+def handle_cooking(data):
+    """
+    1. Update Player Skill
+    2. Deduct Ingredients
+    3. Generate Log
+    4. Disable Mess Hall
+    """
+    player_name = data.get('player_name')
+    recipe_name = data.get('recipe')
+    outcome = data.get('outcome')
+
+    if outcome == 'Cancel': return
+
+    # 1. Update Skill
+    player = next((p for p in game_state.get('players', []) if p['name'] == player_name), None)
+    if player:
+        xp_map = {
+            'Critical Success': 10,
+            'Success': 5,
+            'Failure': 2,
+            'Critical Failure': -2
+        }
+        change = xp_map.get(outcome, 0)
+        player['skills']['cooking'] = max(0, player['skills']['cooking'] + change)
+
+    # 2. Deduct Ingredients (Existing Logic)
+    recipe = next((r for r in game_state.get('recipes', []) if r['name'] == recipe_name), None)
+    if recipe:
+        inventory = game_state.get('inventory', [])
+        for req in recipe['requirements']:
+            tier = req['tier']
+            qty_needed = req['qty']
+            candidates = [i for i in inventory if i.get('category') == 'Ingredients' and f"Tier {tier}" in i.get('description', '')]
+            for item in candidates:
+                if qty_needed <= 0: break
+                take = min(item['qty'], qty_needed)
+                item['qty'] -= take
+                qty_needed -= take
+        game_state['inventory'] = [i for i in inventory if i['qty'] > 0]
+
+    # 3. Generate Log Message
+    log_type = "normal"
+    effect_text = recipe['effect']
+
+    if outcome == 'Critical Success':
+        log_type = "crit-success"
+        bonus = recipe.get('critical_success', "Delicious! Morale +1.")
+        effect_text += f" CRITICAL BONUS: {bonus}"
+    elif outcome == 'Critical Failure':
+        log_type = "crit-fail"
+        malus = recipe.get('critical_fail', "Burnt! Kitchen Fire started.")
+        effect_text += f" CRITICAL FAIL: {malus}"
+
+    log_message = f"{player_name} cooked {recipe_name} ({outcome}). Effect: {effect_text}"
+
+    new_log = {"text": log_message, "type": log_type}
+    game_state.get('action_log', []).append(new_log)
+
+    # Keep log short (last 10 items)
+    if len(game_state['action_log']) > 10:
+        game_state['action_log'].pop(0)
+
+    # 4. Disable Mess Hall Globally
+    game_state['status']['mess_offline'] = True
+
+    save_game(game_state)
+
+    # Broadcast EVERYTHING
+    response = game_state['status'].copy()
+    response['inventory'] = game_state['inventory']
+
+    emit('update_state', response, broadcast=True) # Updates Bars, Buttons, Inventory
+    emit('new_log', new_log, broadcast=True)       # Updates Log View
+
+
 def open_browser():
-    # CHANGED: Open the public Host Screen, not the GM secret screen
     webbrowser.open_new('http://localhost:5000/host')
 
 if __name__ == '__main__':

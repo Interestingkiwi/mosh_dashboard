@@ -11,7 +11,8 @@
 <div class="container">
     <div id="map-container" class="hud-panel">
         <canvas id="galaxy-canvas"></canvas>
-
+        <div id="action-log-container">
+            </div>
         <div id="planet-info">
             <h2>SYSTEM NAME</h2>
             <p>System description goes here...</p>
@@ -66,7 +67,7 @@
                 <button class="console-btn">Lab</button>
                 <button class="console-btn">Mental</button>
 
-                <button class="console-btn" onclick="openMess()">Mess</button>
+                <button id="btn-mess" class="console-btn" onclick="openMess()">Mess</button>
                 <button class="console-btn">Crew</button>
                 <button class="console-btn">Logs</button>
             </div>
@@ -82,6 +83,7 @@
     window.unlockedLocations = {{ unlocks.locations | tojson }};
     window.inventory = {{ inventory | tojson }};
     window.recipes = {{ recipes | tojson }};
+    window.playerCookingSkill = 0;
 
     // 2. Socket Listeners
     var socket = io();
@@ -97,6 +99,35 @@
         document.getElementById('hull-bar').style.width = state.hull + "%";
         document.getElementById('shield-bar').style.width = state.shields + "%";
         document.getElementById('fuel-bar').style.width = state.fuel + "%";
+
+        // CHECK MESS HALL STATUS
+        const messBtn = document.getElementById('btn-mess');
+        if (messBtn) {
+            if (state.mess_offline) {
+                messBtn.classList.add('disabled');
+                messBtn.disabled = true;
+            } else {
+                messBtn.classList.remove('disabled');
+                messBtn.disabled = false;
+            }
+        }
+    });
+
+    // 2. Handle New Logs
+    socket.on('new_log', function(log) {
+        const container = document.getElementById('action-log-container');
+        const entry = document.createElement('div');
+        entry.className = `log-entry ${log.type}`;
+        entry.innerText = log.text;
+
+        // Add to bottom
+        container.appendChild(entry);
+
+        // Auto scroll/cleanup if too many
+        if (container.children.length > 8) {
+            container.removeChild(container.firstChild);
+        }
+    });
 
         // Dynamic Colors
         if(state.shields < 30) {
