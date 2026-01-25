@@ -20,22 +20,18 @@
             <h2 style="color: #00ff00; margin: 0;">SYNTHESIZER</h2>
             <button class="close-btn" onclick="closeMess()" style="color:#00ff00;">&times;</button>
         </div>
-
         <h3 style="color: #888; font-size: 0.9em; margin-top: 0;">AVAILABLE INGREDIENTS</h3>
         <ul id="kitchen-stock" style="list-style: none; padding: 0; color: #aaa; font-size: 0.8em; margin-bottom: 15px; border-bottom: 1px solid #333; padding-bottom: 10px;"></ul>
-
         <h3 style="color: #888; font-size: 0.9em;">RECIPES</h3>
         <div id="recipe-list" style="max-height: 50vh; overflow-y: auto;"></div>
 
         <div id="mess-resolution" style="display: none; position: absolute; top:0; left:0; width:100%; height:100%; background: rgba(10, 20, 10, 0.98); flex-direction: column; align-items: center; justify-content: center; z-index: 10;">
             <h2 style="color: #fff;">COOKING...</h2>
-
             <div style="background: #003300; border: 2px solid #00ff00; padding: 20px; text-align: center; border-radius: 10px; margin-bottom: 20px;">
                 <p style="color: #888; margin: 0;">TARGET SCORE</p>
                 <h1 id="cook-score" style="font-size: 4em; margin: 10px 0; color: #00ff00;">00</h1>
                 <p id="cook-details" style="color: #aaa; font-size: 0.8em;">Base: 50 + Skill: 10</p>
             </div>
-
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 80%;">
                 <button onclick="finalizeCook('Critical Success')" style="background: #00ff00; color: #000; border:none; padding: 15px; font-weight: bold; grid-column: span 2;">CRITICAL SUCCESS</button>
                 <button onclick="finalizeCook('Success')" style="background: #00cc00; color: #fff; border:none; padding: 15px; font-weight: bold; grid-column: span 2;">SUCCESS</button>
@@ -51,14 +47,24 @@
     // --- SHARED CONSTANTS ---
     const CATEGORIES = ["Weapons", "Armor", "Equipment", "Food", "Medicine", "Ingredients", "Scrap Parts", "Misc"];
     let currentCategory = "Weapons";
-    let activeRecipe = null; // Tracks which recipe is being cooked
+    let activeRecipe = null;
 
     // --- MANIFEST FUNCTIONS ---
-    function openManifest() { renderTabs(); renderManifest(); document.getElementById('manifest-modal').style.display = 'flex'; }
-    function closeManifest() { document.getElementById('manifest-modal').style.display = 'none'; }
+    function openManifest() {
+        // Ensure modal is visible
+        document.getElementById('manifest-modal').style.display = 'flex';
+        // Force render immediatey
+        renderTabs();
+        renderManifest();
+    }
+
+    function closeManifest() {
+        document.getElementById('manifest-modal').style.display = 'none';
+    }
 
     function renderTabs() {
         const bar = document.getElementById('manifest-tabs');
+        if (!bar) return;
         bar.innerHTML = '';
         CATEGORIES.forEach(cat => {
             const btn = document.createElement('button');
@@ -71,31 +77,61 @@
 
     function renderManifest() {
         const body = document.getElementById('manifest-body');
+        if (!body) return;
         body.innerHTML = '';
+
         if (!window.inventory) return;
+
         const items = window.inventory.filter(i => i.category === currentCategory);
-        if (items.length === 0) { body.innerHTML = '<tr><td colspan="2" style="text-align:center; color:#555; padding:20px;">NO ITEMS FOUND</td></tr>'; return; }
+
+        if (items.length === 0) {
+            body.innerHTML = '<tr><td colspan="2" style="text-align:center; color:#555; padding:20px;">NO ITEMS FOUND</td></tr>';
+            return;
+        }
+
         items.forEach(item => {
-            body.innerHTML += `<tr><td><span style="color: #00f0ff; font-weight: bold;">${item.item}</span><span class="desc-col">${item.description}</span></td><td style="vertical-align: top;">x${item.qty}</td></tr>`;
+            body.innerHTML += `
+                <tr>
+                    <td>
+                        <span style="color: #00f0ff; font-weight: bold;">${item.item}</span>
+                        <span class="desc-col">${item.description}</span>
+                    </td>
+                    <td style="vertical-align: top;">x${item.qty}</td>
+                </tr>`;
         });
     }
 
     // --- MESS FUNCTIONS ---
-    function openMess() { renderStock(); renderRecipes(); document.getElementById('mess-modal').style.display = 'flex'; }
-    function closeMess() { document.getElementById('mess-modal').style.display = 'none'; document.getElementById('mess-resolution').style.display = 'none'; }
+    function openMess() {
+        document.getElementById('mess-modal').style.display = 'flex';
+        renderStock();
+        renderRecipes();
+    }
+
+    function closeMess() {
+        document.getElementById('mess-modal').style.display = 'none';
+        document.getElementById('mess-resolution').style.display = 'none';
+    }
 
     function getTierTotal(tier) {
         if (!window.inventory) return 0;
-        return window.inventory.filter(i => i.category === "Ingredients" && i.description.includes(`Tier ${tier}`)).reduce((sum, item) => sum + item.qty, 0);
+        return window.inventory
+            .filter(i => i.category === "Ingredients" && i.description.includes(`Tier ${tier}`))
+            .reduce((sum, item) => sum + item.qty, 0);
     }
 
     function renderStock() {
         const list = document.getElementById('kitchen-stock');
+        if (!list) return;
         list.innerHTML = '';
         if (!window.inventory) return;
 
-        // Group by Tier
         const ingredients = window.inventory.filter(i => i.category === "Ingredients");
+        if (ingredients.length === 0) {
+            list.innerHTML = "<li>No ingredients available.</li>";
+            return;
+        }
+
         let tiers = {};
         ingredients.forEach(i => {
             const match = i.description.match(/Tier (\d+)/i);
@@ -112,12 +148,14 @@
 
     function renderRecipes() {
         const list = document.getElementById('recipe-list');
+        if (!list) return;
         list.innerHTML = '';
         if (!window.recipes) return;
 
         window.recipes.forEach(r => {
             let canCook = true;
             let reqHtml = '';
+
             r.requirements.forEach(req => {
                 const avail = getTierTotal(req.tier);
                 if (avail < req.qty) canCook = false;
@@ -125,14 +163,18 @@
             });
 
             const card = document.createElement('div');
-            card.style.border = "1px solid #333"; card.style.padding = "10px"; card.style.marginBottom = "10px";
+            card.style.border = "1px solid #333";
+            card.style.padding = "10px";
+            card.style.marginBottom = "10px";
             card.style.background = canCook ? "rgba(0,50,0,0.3)" : "transparent";
 
             card.innerHTML = `
                 <div style="display:flex; justify-content:space-between; align-items:center;">
                     <strong style="color:#00ff00;">${r.name}</strong>
                     <button onclick="startCooking('${r.name}')" ${canCook ? '' : 'disabled'}
-                        style="background:${canCook?'#00ff00':'#333'}; color:${canCook?'#000':'#888'}; border:none; padding:5px 10px; cursor:pointer;">COOK</button>
+                        style="background:${canCook?'#00ff00':'#333'}; color:${canCook?'#000':'#888'}; border:none; padding:5px 10px; cursor:pointer;">
+                        COOK
+                    </button>
                 </div>
                 <div style="margin:5px 0;">${reqHtml}</div>
                 <small style="color:#888;">${r.effect}</small>
@@ -141,13 +183,10 @@
         });
     }
 
-    // --- COOKING RESOLUTION ---
     function startCooking(name) {
         activeRecipe = window.recipes.find(r => r.name === name);
         const skill = window.playerCookingSkill || 0;
 
-        // Difficulty Formula: 100 - (Sum of Ingredient Tier Values)
-        // e.g. Tier 1 = 10pts, Tier 2 = 20pts
         let difficultyPenalty = 0;
         activeRecipe.requirements.forEach(req => {
             difficultyPenalty += (req.tier * 10 * req.qty);
@@ -156,28 +195,21 @@
         const baseScore = 100 - difficultyPenalty;
         const totalScore = baseScore + skill;
 
-        // Update UI
         document.getElementById('cook-score').innerText = totalScore;
         document.getElementById('cook-details').innerText = `Base: ${baseScore} + Skill: ${skill}`;
-
-        // Show Overlay
         document.getElementById('mess-resolution').style.display = 'flex';
     }
 
     function finalizeCook(outcome) {
         if (!activeRecipe) return;
-
-        // Use the global variable set in player_menu.html, or default to "Unknown"
         const player = window.currentPlayer || "Crew";
-
         socket.emit('complete_cooking', {
             player_name: player,
             recipe: activeRecipe.name,
             outcome: outcome
         });
-
-        cancelCook(); // Closes resolution overlay
-        closeMess();  // Closes mess modal
+        cancelCook();
+        closeMess();
     }
 
     function cancelCook() {
@@ -185,6 +217,7 @@
         activeRecipe = null;
     }
 
+    // Close on Outside Click
     window.onclick = function(event) {
         if (event.target == document.getElementById('manifest-modal')) closeManifest();
         if (event.target == document.getElementById('mess-modal')) closeMess();

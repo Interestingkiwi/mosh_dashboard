@@ -73,7 +73,8 @@ def player_dashboard(player_name):
     return render_template('player_menu.html',
                            player=player,
                            inventory=game_state.get('inventory', []),
-                           recipes=game_state.get('recipes', []))
+                           recipes=game_state.get('recipes', []),
+                           state=game_state['status']) # <--- ADDED THIS
 
 @app.route('/host')
 def host_screen():

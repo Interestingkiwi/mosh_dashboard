@@ -8,14 +8,21 @@
 </head>
 <body>
 
+<script>
+    window.unlockedSystems = {{ unlocks.systems | tojson }};
+    window.unlockedLocations = {{ unlocks.locations | tojson }};
+    window.inventory = {{ inventory | tojson }};
+    window.recipes = {{ recipes | tojson }};
+    window.playerCookingSkill = 0;
+</script>
+
 <div class="container">
     <div id="map-container" class="hud-panel">
         <canvas id="galaxy-canvas"></canvas>
-        <div id="action-log-container">
-            </div>
+        <div id="action-log-container"></div>
         <div id="planet-info">
             <h2>SYSTEM NAME</h2>
-            <p>System description goes here...</p>
+            <p>System description...</p>
         </div>
     </div>
 
@@ -67,40 +74,39 @@
                 <button class="console-btn">Lab</button>
                 <button class="console-btn">Mental</button>
 
-                <button id="btn-mess" class="console-btn" onclick="openMess()">Mess</button>
+                <button id="btn-mess" class="console-btn {% if state.mess_offline %}disabled{% endif %}" onclick="openMess()" {% if state.mess_offline %}disabled{% endif %}>Mess</button>
+
                 <button class="console-btn">Crew</button>
                 <button class="console-btn">Logs</button>
             </div>
         </div>
-
     </div>
 </div>
 
-<script>
-    // 1. Setup global data needed by the shared modals
-    // The included modals.html file expects these variables to exist!
-    window.unlockedSystems = {{ unlocks.systems | tojson }};
-    window.unlockedLocations = {{ unlocks.locations | tojson }};
-    window.inventory = {{ inventory | tojson }};
-    window.recipes = {{ recipes | tojson }};
-    window.playerCookingSkill = 0;
+{% include 'includes/modals.html' %}
 
-    // 2. Socket Listeners
+<script src="{{ url_for('static', filename='js/galaxy_map.js') }}?v=6"></script>
+
+<script>
     var socket = io();
     socket.on('update_state', function(state) {
-        // Update Text
         document.getElementById('sys-name').innerText = state.current_system;
         document.getElementById('loc-name').innerText = "Orbiting: " + state.current_location;
         document.getElementById('hull-val').innerText = state.hull + "%";
         document.getElementById('shield-val').innerText = state.shields + "%";
         document.getElementById('fuel-val').innerText = state.fuel + "%";
 
-        // Update Bars
         document.getElementById('hull-bar').style.width = state.hull + "%";
         document.getElementById('shield-bar').style.width = state.shields + "%";
         document.getElementById('fuel-bar').style.width = state.fuel + "%";
 
-        // CHECK MESS HALL STATUS
+        if(state.shields < 30) document.getElementById('shield-bar').style.backgroundColor = "red";
+        else document.getElementById('shield-bar').style.backgroundColor = "#00f0ff";
+
+        if (typeof updateMapState === "function") {
+            updateMapState(state.current_system, state.target_system);
+        }
+
         const messBtn = document.getElementById('btn-mess');
         if (messBtn) {
             if (state.mess_offline) {
@@ -111,51 +117,26 @@
                 messBtn.disabled = false;
             }
         }
-    });
 
-    // 2. Handle New Logs
-    socket.on('new_log', function(log) {
-        const container = document.getElementById('action-log-container');
-        const entry = document.createElement('div');
-        entry.className = `log-entry ${log.type}`;
-        entry.innerText = log.text;
-
-        // Add to bottom
-        container.appendChild(entry);
-
-        // Auto scroll/cleanup if too many
-        if (container.children.length > 8) {
-            container.removeChild(container.firstChild);
-        }
-    });
-
-        // Dynamic Colors
-        if(state.shields < 30) {
-            document.getElementById('shield-bar').style.backgroundColor = "red";
-        } else {
-            document.getElementById('shield-bar').style.backgroundColor = "#00f0ff";
-        }
-
-        // Update Map
-        if (typeof updateMapState === "function") {
-            updateMapState(state.current_system, state.target_system);
-        }
-
-        // Update Inventory/Recipes if changed
         if (state.inventory) {
             window.inventory = state.inventory;
-            // If the manifest modal is currently open, refresh it to show new items
-            if (document.getElementById('manifest-modal') && document.getElementById('manifest-modal').style.display === 'flex') {
-                // These functions are defined in 'includes/modals.html'
+            const modal = document.getElementById('manifest-modal');
+            if (modal && modal.style.display === 'flex') {
                 if (typeof renderManifest === 'function') renderManifest();
             }
         }
     });
+
+    socket.on('new_log', function(log) {
+        const container = document.getElementById('action-log-container');
+        if(container) {
+            const entry = document.createElement('div');
+            entry.className = `log-entry ${log.type}`;
+            entry.innerText = log.text;
+            container.appendChild(entry);
+            if (container.children.length > 8) container.removeChild(container.firstChild);
+        }
+    });
 </script>
-
-{% include 'includes/modals.html' %}
-
-<script src="{{ url_for('static', filename='js/galaxy_map.js') }}?v=4"></script>
-
 </body>
 </html>

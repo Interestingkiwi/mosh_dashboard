@@ -3,12 +3,10 @@
 <div class="container" style="display: block; overflow-y: auto;">
     <h1>GM OVERRIDE CONSOLE</h1>
 
-    <form method="POST" action="/gm">
-
+    <form method="POST" action="/gm" id="main-gm-form">
         <div class="hud-panel">
             <h2>Live Ship Status</h2>
             <div style="display: flex; gap: 20px; flex-wrap: wrap;">
-
                 <div>
                     <label>Current System:</label><br>
                     <select name="current_system" style="padding: 10px; background: #000; color: #fff;">
@@ -19,7 +17,6 @@
                         {% endfor %}
                     </select>
                 </div>
-
                 <div>
                     <label>Orbiting Location:</label><br>
                     <select name="current_location" style="padding: 10px; background: #000; color: #fff;">
@@ -30,7 +27,6 @@
                         {% endfor %}
                     </select>
                 </div>
-
                 <div>
                     <label>Hull %:</label><br>
                     <input type="number" name="hull" value="{{ game.status.hull }}" style="width: 60px;">
@@ -47,69 +43,60 @@
         </div>
 
         <div class="hud-panel" style="margin-top: 20px;">
-            <h2>Campaign Assets (Check to make available)</h2>
-
+            <h2>Campaign Assets</h2>
             <div style="display: flex; gap: 40px;">
-
                 <div>
                     <h3>Known Systems</h3>
                     {% for item in game.library.systems %}
                     <div>
-                        <input type="checkbox" name="unlock_systems" value="{{ item }}"
-                               {% if item in game.unlocks.systems %}checked{% endif %}>
+                        <input type="checkbox" name="unlock_systems" value="{{ item }}" {% if item in game.unlocks.systems %}checked{% endif %}>
                         <label>{{ item }}</label>
                     </div>
                     {% endfor %}
                 </div>
-
                 <div>
                     <h3>Known Locations</h3>
                     {% for item in game.library.locations %}
                     <div>
-                        <input type="checkbox" name="unlock_locations" value="{{ item }}"
-                               {% if item in game.unlocks.locations %}checked{% endif %}>
+                        <input type="checkbox" name="unlock_locations" value="{{ item }}" {% if item in game.unlocks.locations %}checked{% endif %}>
                         <label>{{ item }}</label>
                     </div>
                     {% endfor %}
                 </div>
-
                 <div>
                     <h3>Installed Upgrades</h3>
                     {% for item in game.library.upgrades %}
                     <div>
-                        <input type="checkbox" name="unlock_upgrades" value="{{ item }}"
-                               {% if item in game.unlocks.upgrades %}checked{% endif %}>
+                        <input type="checkbox" name="unlock_upgrades" value="{{ item }}" {% if item in game.unlocks.upgrades %}checked{% endif %}>
                         <label>{{ item }}</label>
                     </div>
                     {% endfor %}
                 </div>
-
                 <div>
                     <h3>Crew on Board</h3>
                     {% for item in game.library.crew %}
                     <div>
-                        <input type="checkbox" name="unlock_crew" value="{{ item }}"
-                               {% if item in game.unlocks.crew %}checked{% endif %}>
+                        <input type="checkbox" name="unlock_crew" value="{{ item }}" {% if item in game.unlocks.crew %}checked{% endif %}>
                         <label>{{ item }}</label>
                     </div>
                     {% endfor %}
                 </div>
-
             </div>
         </div>
-        <div class="hud-panel" style="border-color: #ff3333;">
-            <h2 style="color: #ff3333;">Emergency Overrides</h2>
-
-            <form action="/gm/reset_mess" method="POST" style="display: inline-block;">
-                <button type="submit" style="background: #550000; border-color: #ff0000; color: #fff;">
-                    RESET MESS HALL ACTIONS
-                </button>
-            </form>
-        </div>        
-        <button type="submit" style="margin-top: 20px; width: 100%; font-size: 1.5em; background: #ff9900; color: black; font-weight: bold;">
-            APPLY CHANGES
-        </button>
     </form>
+
+    <button type="submit" form="main-gm-form" style="margin-top: 20px; width: 100%; font-size: 1.5em; background: #ff9900; color: black; font-weight: bold;">
+        APPLY CHANGES
+    </button>
+
+    <div class="hud-panel" style="border-color: #ff3333; margin-top: 30px;">
+        <h2 style="color: #ff3333;">Emergency Overrides</h2>
+        <form action="/gm/reset_mess" method="POST">
+            <button type="submit" style="background: #550000; border-color: #ff0000; color: #fff; padding: 15px;">
+                RESET MESS HALL ACTIONS
+            </button>
+        </form>
+    </div>
 
     <br>
     <a href="/host" target="_blank"><button>Open Host QR Screen</button></a>

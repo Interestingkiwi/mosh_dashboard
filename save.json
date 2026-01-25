@@ -5,14 +5,14 @@
         "hull": 100,
         "shields": 100,
         "fuel": 100,
-        "mess_offline": true
+        "mess_offline": false
     },
     "players": [
         {
             "name": "Wruby",
             "class": "Xenobiologist",
             "skills": {
-                "cooking": 5,
+                "cooking": 10,
                 "piloting": 0,
                 "engineering": 0,
                 "gunner": 0,
@@ -160,7 +160,7 @@
         {
             "category": "Ingredients",
             "item": "Algea Paste",
-            "qty": 16,
+            "qty": 12,
             "description": "Tier 1 - Basic Algea Sludge, contains all necessary nutrients"
         }
     ],
@@ -170,7 +170,6 @@
         ],
         "locations": [
             "Ma'at",
-            "Zerth XSHZ",
             "Jump-ONT"
         ],
         "upgrades": [
@@ -237,6 +236,18 @@
         {
             "text": "Wruby cooked Standard Rations (Success). Effect: Feeds the crew, plus creates 4x MRE's. (Warning: Serving this on the ship 3 days in a row crew gains +1 Stress, and -1 Ship Morale)",
             "type": "normal"
+        },
+        {
+            "text": "SYSTEM ALERT: Mess Hall maintenance complete. Systems online.",
+            "type": "system"
+        },
+        {
+            "text": "Wruby cooked Standard Rations (Success). Effect: Feeds the crew, plus creates 4x MRE's. (Warning: Serving this on the ship 3 days in a row crew gains +1 Stress, and -1 Ship Morale)",
+            "type": "normal"
+        },
+        {
+            "text": "SYSTEM ALERT: Mess Hall maintenance complete. Systems online.",
+            "type": "system"
         }
     ]
 }
